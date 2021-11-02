@@ -73,7 +73,7 @@ def get_banxico_data():
     try:
         # Collect the last updated data from Banxico API in JSON format
         data = requests.get(BANXICO_URL, headers={'Bmx-Token': BANXICO_TOKEN}).json()
-
+        print(data)
         # Extract exchange rate value
         rate = reduce(operator.getitem, ['bmx', 'series', 0, 'datos', 0], data)
     except Exception as e:
