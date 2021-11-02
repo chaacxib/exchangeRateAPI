@@ -1,13 +1,19 @@
 import logging
+import operator
 import requests
 
+from functools import reduce
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 FOD_URL = 'https://www.banxico.org.mx/tipcamb/tipCamMIAction.do'
 
+BANXICO_URL = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno'
+BANXICO_TOKEN = ''
+
 def get_official_gazette_of_the_federation_data():
-    """Scrape USD to MXN exchange price from Banxico Official Gazette Of The Federation
+    """Scrape USD to MXN exchange price from 
+    Banxico Official Gazette Of The Federation
     --------------------
     Parameters:
         None
@@ -43,4 +49,21 @@ def get_official_gazette_of_the_federation_data():
     # Return last updated value if no error was found, if not returns N/A
     return({"value": data[0].get('Para pagos', 'N/A')})
 
-print(get_official_gazette_of_the_federation_data())
+
+def get_banxico_data():
+    """Collect USD to MXN exchange price from 
+    Banxico Economic Information System API
+    --------------------
+    Parameters:
+        None
+    --------------------
+    Returns:
+        value: dict(str)
+            Dictionary with structure { 'value': LAST_UPDATED_EXCHANGE_RATE}
+    """
+    # Collect the last updated data from Banxico API in JSON format
+    data = requests.get(BANXICO_URL, headers={'Bmx-Token': BANXICO_TOKEN}).json()
+
+    # Extract exchange rate value and return it
+    value = reduce(operator.getitem, ['bmx', 'series', 0, 'datos', 0, 'dato'], data)
+    return({"value": value if value else 'N/A'})
