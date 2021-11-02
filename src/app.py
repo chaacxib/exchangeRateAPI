@@ -8,8 +8,12 @@ from datetime import date, datetime, timedelta
 
 FOD_URL = 'https://www.banxico.org.mx/tipcamb/tipCamMIAction.do'
 
-BANXICO_URL = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno'
 BANXICO_TOKEN = ''
+BANXICO_URL = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno'
+
+FIXER_API_KEY = ''
+FIXER_URL = 'https://data.fixer.io/api/latest?access_key={api_key}&base=USD&symbols=MXN'
+
 
 def get_official_gazette_of_the_federation_data():
     """Scrape USD to MXN exchange price from 
@@ -20,7 +24,7 @@ def get_official_gazette_of_the_federation_data():
     --------------------
     Returns:
         value: dict(str)
-            Dictionary with structure { 'value': LAST_UPDATED_EXCHANGE_RATE}
+            Dictionary with structure { 'last_updated': LAST_UPDATED_DATE,'value': LAST_UPDATED_EXCHANGE_RATE}
     """
     try:
         # Parse banxico data in beautiful soup
@@ -47,7 +51,11 @@ def get_official_gazette_of_the_federation_data():
         logging.error(str(e))
 
     # Return last updated value if no error was found, if not returns N/A
-    return({"value": data[0].get('Para pagos', 'N/A')})
+    result = {
+        "last_updated": data[0].get('Fecha', 'N/A'),
+        "value": data[0].get('Para pagos', 'N/A')
+    }
+    return result
 
 
 def get_banxico_data():
@@ -59,11 +67,54 @@ def get_banxico_data():
     --------------------
     Returns:
         value: dict(str)
-            Dictionary with structure { 'value': LAST_UPDATED_EXCHANGE_RATE}
+            Dictionary with structure { 'last_updated': LAST_UPDATED_DATE,'value': LAST_UPDATED_EXCHANGE_RATE}
     """
-    # Collect the last updated data from Banxico API in JSON format
-    data = requests.get(BANXICO_URL, headers={'Bmx-Token': BANXICO_TOKEN}).json()
+    value = ''
+    try:
+        # Collect the last updated data from Banxico API in JSON format
+        data = requests.get(BANXICO_URL, headers={'Bmx-Token': BANXICO_TOKEN}).json()
 
-    # Extract exchange rate value and return it
-    value = reduce(operator.getitem, ['bmx', 'series', 0, 'datos', 0, 'dato'], data)
-    return({"value": value if value else 'N/A'})
+        # Extract exchange rate value
+        value = reduce(operator.getitem, ['bmx', 'series', 0, 'datos', 0, 'dato'], data)
+    except Exception as e:
+        logging.error(str(e))
+
+    result = {
+        "last_updated": '',
+        "value": value if value else 'N/A'
+    }
+
+    return result
+
+
+def get_fixer_data():
+    """Collect USD to MXN exchange price from Fixer API
+    --------------------
+    Parameters:
+        None
+    --------------------
+    Returns:
+        value: dict(str)
+            Dictionary with structure { 'last_updated': LAST_UPDATED_DATE,'value': LAST_UPDATED_EXCHANGE_RATE}
+    """
+    data = None
+
+    try:
+        # Collect the last updated data from Fixer API in JSON format
+        data = requests.get(FIXER_URL.format(api_key=FIXER_API_KEY)).json()
+    except Exception as e:
+        logging.error(str(e))
+
+    # Validate request result and assign values to response message
+    if data is not None and data['success']:
+        result = {
+            "last_updated": data['date'],
+            "value": data['rates']['MXN']
+        }
+    else:
+        result = {
+            "last_updated": 'N/A',
+            "value": 'N/A'
+        }
+    
+    return result
