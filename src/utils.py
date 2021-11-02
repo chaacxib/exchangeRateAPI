@@ -4,7 +4,7 @@ import requests
 
 from functools import reduce
 from bs4 import BeautifulSoup
-from datetime import date, datetime, timedelta
+from datetime import datetime
 
 FOD_URL = 'https://www.banxico.org.mx/tipcamb/tipCamMIAction.do'
 
@@ -69,19 +69,19 @@ def get_banxico_data():
         value: dict(str)
             Dictionary with structure { 'last_updated': LAST_UPDATED_DATE,'value': LAST_UPDATED_EXCHANGE_RATE}
     """
-    value = ''
+    rate = {}
     try:
         # Collect the last updated data from Banxico API in JSON format
         data = requests.get(BANXICO_URL, headers={'Bmx-Token': BANXICO_TOKEN}).json()
 
         # Extract exchange rate value
-        value = reduce(operator.getitem, ['bmx', 'series', 0, 'datos', 0, 'dato'], data)
+        rate = reduce(operator.getitem, ['bmx', 'series', 0, 'datos', 0], data)
     except Exception as e:
         logging.error(str(e))
 
     result = {
-        "last_updated": '',
-        "value": value if value else 'N/A'
+        "last_updated": rate['fecha'] if rate else 'N/A',
+        "value": rate['dato'] if rate else 'N/A'
     }
 
     return result
