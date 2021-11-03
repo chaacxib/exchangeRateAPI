@@ -1,17 +1,22 @@
+import os
 import logging
 import operator
 import requests
 
 from functools import reduce
+from database import Request
 from bs4 import BeautifulSoup
-from datetime import datetime
+
+from datetime import datetime, timedelta
+
+MAX_REQUESTS = 5
 
 FOD_URL = 'https://www.banxico.org.mx/tipcamb/tipCamMIAction.do'
 
-BANXICO_TOKEN = ''
+BANXICO_TOKEN = os.environ['BANXICO_TOKEN']
 BANXICO_URL = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno'
 
-FIXER_API_KEY = ''
+FIXER_API_KEY = os.environ['FIXER_API_KEY']
 FIXER_URL = 'https://data.fixer.io/api/latest?access_key={api_key}&base=USD&symbols=MXN'
 
 
@@ -118,3 +123,11 @@ def get_fixer_data():
         }
     
     return result
+
+
+def max_requests(username):
+    requests = Request.count(username, Request.datetime >= datetime.utcnow() - timedelta(minutes=30))
+
+    if requests >= MAX_REQUESTS:
+        return True
+    return False
