@@ -40,51 +40,52 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 async def validate_jwt(token: str = Depends(oauth2_scheme)):
-  credentials_exception = HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="Could not validate credentials",
-      headers={"WWW-Authenticate": "Bearer"},
-  )
-  try:
-      payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-      username: str = payload.get("sub")
-      if username is None:
-          raise credentials_exception
-      token_data = TokenData(username=username)
-  except JWTError:
-      raise credentials_exception
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
 
-  user = get_user(username=token_data.username)
-  if user is None:
-      raise credentials_exception
+    user = get_user(username=token_data.username)
+    if user is None:
+        raise credentials_exception
 
-  return user.username
+    return user.username
+
 
 @app.get("/")
 async def root(username: str = Depends(validate_jwt)):
-  if max_requests(username=username):
-    raise HTTPException(
+    if max_requests(username=username):
+        raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Maximum requests reached, try again in 30 minutes"
-    )
+            detail="Maximum requests reached, try again in 30 minutes"
+        )
 
-  result = {'rates':{}}
+    result = {'rates': {}}
 
-  result['rates']['diario de la fedearcion'] = get_official_gazette_of_the_federation_data()
-  result['rates']['fixer'] = get_fixer_data()
-  result['rates']['banxico'] = get_banxico_data()
+    result['rates']['diario de la fedearcion'] = get_official_gazette_of_the_federation_data()
+    result['rates']['fixer'] = get_fixer_data()
+    result['rates']['banxico'] = get_banxico_data()
 
-  req = Request(username=username, datetime=datetime.utcnow())
-  req.save()
+    req = Request(username=username, datetime=datetime.utcnow())
+    req.save()
 
-  return result
+    return result
 
 if not User.exists():
-        User.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
-        user = User(username=os.environ['TEST_USER_NAME'], hashed_password=os.environ['TEST_USER_PASSWORD'])
-        user.save()
+    User.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
+    user = User(username=os.environ['TEST_USER_NAME'], hashed_password=os.environ['TEST_USER_PASSWORD'])
+    user.save()
 
 if not Request.exists():
-        Request.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
+    Request.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
 
 handler = Mangum(app)

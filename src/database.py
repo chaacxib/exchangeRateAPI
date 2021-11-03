@@ -10,7 +10,7 @@ class User(Model):
         table_name = 'dynamodb-user'
         region = 'us-east-1'
 
-    username =  UnicodeAttribute(hash_key=True)
+    username = UnicodeAttribute(hash_key=True)
     hashed_password = UnicodeAttribute()
 
 
@@ -20,5 +20,5 @@ class Request(Model):
         table_name = 'dynamodb-request'
         region = 'us-east-1'
 
-    username =  UnicodeAttribute(hash_key=True)
+    username = UnicodeAttribute(hash_key=True)
     datetime = UTCDateTimeAttribute(range_key=True)

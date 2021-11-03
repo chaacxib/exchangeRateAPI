@@ -21,7 +21,7 @@ FIXER_URL = 'https://data.fixer.io/api/latest?access_key={api_key}&base=USD&symb
 
 
 def get_official_gazette_of_the_federation_data():
-    """Scrape USD to MXN exchange price from 
+    """Scrape USD to MXN exchange price from
     Banxico Official Gazette Of The Federation
     --------------------
     Parameters:
@@ -51,7 +51,7 @@ def get_official_gazette_of_the_federation_data():
             data.append(dict(zip(titles, row_data)))
 
         # Sort data bydate to return last value
-        data.sort(key=lambda item:datetime.strptime(item['Fecha'], '%d/%m/%Y'), reverse=True)
+        data.sort(key=lambda item: datetime.strptime(item['Fecha'], '%d/%m/%Y'), reverse=True)
     except Exception as e:
         logging.error(str(e))
 
@@ -64,7 +64,7 @@ def get_official_gazette_of_the_federation_data():
 
 
 def get_banxico_data():
-    """Collect USD to MXN exchange price from 
+    """Collect USD to MXN exchange price from
     Banxico Economic Information System API
     --------------------
     Parameters:
@@ -121,7 +121,7 @@ def get_fixer_data():
             "last_updated": 'N/A',
             "value": 'N/A'
         }
-    
+
     return result
 
 
