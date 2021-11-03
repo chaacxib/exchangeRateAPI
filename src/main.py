@@ -1,5 +1,6 @@
 import os
 
+from mangum import Mangum
 from datetime import timedelta, datetime
 from jose import JWTError, jwt
 
@@ -10,16 +11,7 @@ from utils import get_official_gazette_of_the_federation_data, get_banxico_data,
 from database import User, Request
 from auth import Token, TokenData, oauth2_scheme, get_user, verify_password, create_access_token, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
-
 app = FastAPI()
-
-if not User.exists():
-        User.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
-        user = User(username=os.environ['TEST_USER_NAME'], hashed_password=os.environ['TEST_USER_PASSWORD'])
-        user.save()
-
-if not Request.exists():
-        Request.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
 
 
 def authenticate_user(username: str, password: str):
@@ -86,3 +78,13 @@ async def root(username: str = Depends(validate_jwt)):
   req.save()
 
   return result
+
+if not User.exists():
+        User.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
+        user = User(username=os.environ['TEST_USER_NAME'], hashed_password=os.environ['TEST_USER_PASSWORD'])
+        user.save()
+
+if not Request.exists():
+        Request.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
+
+handler = Mangum(app)

@@ -1,0 +1,16 @@
+bcrypt==3.2.0
+beautifulsoup4==4.10.0
+cryptography==35.0.0
+fastapi==0.70.0
+httptools==0.2.0
+mangum==0.12.3
+passlib==1.7.4
+pydantic==1.8.2
+pynamodb==5.1.0
+python-jose==3.3.0
+python-multipart==0.0.5
+requests==2.26.0
+starlette==0.16.0
+uvicorn==0.15.0
+watchgod==0.7
+websockets==10.0
